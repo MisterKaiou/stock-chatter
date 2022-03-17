@@ -1,5 +1,4 @@
-﻿
-@using StockChatter.Models
+﻿@using StockChatter.Shared.Models.Auth
 
 @page "/register"
 
@@ -7,36 +6,36 @@
 
 <PageTitle>StockChatter - Login</PageTitle>
 
-<h2>Register</h2>
+<EditForm Model="@_registerModel" OnValidSubmit="@SubmitLoginRequest" class="col-md-12">
 
-<EditForm Model="@_registerModel" OnValidSubmit="@SubmitLoginRequest">
-    <label>
-        Username: 
-        <InputText id="username" @bind-Value="_registerModel.Username" placeholder="Your username"/>
-    </label>
+    <div style="width: 50%; margin: 0 auto; padding: 2rem">
 
-    <label>
-        Email: 
-        <InputText id="Email" type="email" @bind-Value="_registerModel.Email" placeholder="Your Email"/>
-    </label>
+        <h2 class="mb-3">Register</h2>
 
-    <br/>
+        <div class="mb-3">
+            <label for="userName" class="form-label">UserName</label>
+            <InputText id="userName" type="text" class="form-control" @bind-Value="_registerModel.UserName" placeholder="Your user name" />
+        </div>
 
-    <label>
-        Password:
-        <InputText id="password" @bind-Value="_registerModel.Password" placeholder="Your password"/>
-    </label>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <InputText id="email" type="email" class="form-control" @bind-Value="_registerModel.Email" placeholder="your@email.com" />
+        </div>
 
-    <br/>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <InputText id="password" class="form-control" @bind-Value="_registerModel.Password" placeholder="Your password" />
+        </div>
 
-    <button type="submit">Submit</button>
+        <button class="btn btn-primary" type="submit">Submit</button>
+    </div>
 </EditForm>
 
 @code {
-    private RegisterModel _registerModel = new();
+    private RegistrationRequest _registerModel = new();
 
     private void SubmitLoginRequest()
     {
-        
+
     }
 }

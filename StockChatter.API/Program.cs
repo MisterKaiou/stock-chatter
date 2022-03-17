@@ -65,7 +65,7 @@ builder.Host.ConfigureServices((ctx, services) =>
 	services.AddAutoMapper(typeof(Program).Assembly);
 
 	services
-		.AddDbContext<StockChattyContext>(opt => opt
+		.AddDbContext<StockChatterContext>(opt => opt
 			.UseSqlServer(ctx.Configuration.GetConnectionString("mainDatabase"))
 		);
 
@@ -89,7 +89,7 @@ builder.Host.ConfigureServices((ctx, services) =>
 		opt.Password.RequiredUniqueChars = 3;
 #endif
 	})
-	.AddEntityFrameworkStores<StockChattyContext>();
+	.AddEntityFrameworkStores<StockChatterContext>();
 
 	#endregion
 
@@ -147,7 +147,7 @@ if (app.Environment.IsDevelopment())
 }
 
 using (var scope = app.Services.CreateScope())
-	await scope.ServiceProvider.GetRequiredService<StockChattyContext>().Database.EnsureCreatedAsync();
+	await scope.ServiceProvider.GetRequiredService<StockChatterContext>().Database.EnsureCreatedAsync();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

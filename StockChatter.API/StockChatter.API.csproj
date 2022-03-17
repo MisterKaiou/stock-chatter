@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Functional.Result\Functional.Result.csproj" />
+    <ProjectReference Include="..\StockChatter.Shared\StockChatter.Shared.csproj" />
   </ItemGroup>
 
 </Project>

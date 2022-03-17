@@ -1,4 +1,4 @@
-﻿@using StockChatter.Models
+﻿@using StockChatter.Shared.Models.Auth
 
 @page "/login"
 
@@ -13,7 +13,7 @@
 <EditForm Model="@_loginModel" OnValidSubmit="@SubmitLoginRequest">
     <label style="padding:15px 0px 0px 0px">
         Username: 
-        <InputText id="username" @bind-Value="_loginModel.Username" placeholder="Your username"/>
+        <InputText id="username" @bind-Value="_loginModel.Email" placeholder="Your username"/>
     </label>
 
     <br/>
@@ -30,7 +30,7 @@
 </EditForm>
 
 @code {
-    private LoginSubmitModel _loginModel = new();
+    private LoginRequest _loginModel = new();
 
     private void SubmitLoginRequest()
     {

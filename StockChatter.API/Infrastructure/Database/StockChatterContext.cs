@@ -5,9 +5,9 @@ using StockChatter.API.Infrastructure.Database.Models;
 
 namespace StockChatter.API.Infrastructure.Database
 {
-    public class StockChattyContext : IdentityDbContext<UserDAO, IdentityRole<Guid>, Guid>
+    public class StockChatterContext : IdentityDbContext<UserDAO, IdentityRole<Guid>, Guid>
     {
-        public StockChattyContext(DbContextOptions options)
+        public StockChatterContext(DbContextOptions options)
             : base(options) { }
 
         public DbSet<UserDAO> Users { get; set; }

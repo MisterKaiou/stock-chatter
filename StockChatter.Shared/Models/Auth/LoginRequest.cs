@@ -1,4 +1,4 @@
-﻿namespace StockChatter.API.Models.Auth
+﻿namespace StockChatter.Shared.Models.Auth
 {
     public class LoginRequest
     {

@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using StockChatter.API.Models.Auth;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using StockChatter.API.Infrastructure.Database.Models;
-using StockChatter.API.Models.Common;
+using StockChatter.Shared.Models.Auth;
+using StockChatter.Shared.Models.Common;
 
 namespace StockChatter.API.Controllers
 {
-	[ApiController]
+    [ApiController]
 	[Route("[controller]")]
 	[ProducesErrorResponseType(typeof(ErrorModel))]
 	public class AuthController : ControllerBase
@@ -26,7 +26,7 @@ namespace StockChatter.API.Controllers
 		}
 
 		[HttpPost("register")]
-		public async Task<IActionResult> Register([FromBody] RegisterModel request)
+		public async Task<IActionResult> Register([FromBody] RegistrationRequest request)
 		{
 			var registerResult = await _userManager.CreateAsync(new UserDAO { Email = request.Email, UserName = request.Email }, request.Password);
 
