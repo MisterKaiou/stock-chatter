@@ -1,0 +1,44 @@
+﻿@using StockChatter.Models
+
+@page "/login"
+
+@inject NavigationManager _navManager
+@inject HttpClient _client
+@attribute [AllowAnonymous]
+
+<PageTitle>StockChatter - Login</PageTitle>
+
+<h2>Login</h2>
+
+<EditForm Model="@_loginModel" OnValidSubmit="@SubmitLoginRequest">
+    <label style="padding:15px 0px 0px 0px">
+        Username: 
+        <InputText id="username" @bind-Value="_loginModel.Username" placeholder="Your username"/>
+    </label>
+
+    <br/>
+
+    <label style="padding:15px 0px 20px 0px">
+        Password:
+        <InputText id="password" @bind-Value="_loginModel.Password" placeholder="Your password"/>
+    </label>
+
+    <br/>
+
+    <button @onclick="@MoveToRegistrationPage">Register</button>
+    <button type="submit">Submit</button>
+</EditForm>
+
+@code {
+    private LoginSubmitModel _loginModel = new();
+
+    private void SubmitLoginRequest()
+    {
+
+    }
+
+    private void MoveToRegistrationPage()
+    {
+        _navManager.NavigateTo("register");
+    }
+}
