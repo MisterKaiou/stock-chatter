@@ -28,7 +28,7 @@ namespace StockChatter.API.Controllers
 		[HttpPost("register")]
 		public async Task<IActionResult> Register([FromBody] RegistrationRequest request)
 		{
-			var registerResult = await _userManager.CreateAsync(new UserDAO { Email = request.Email, UserName = request.Email }, request.Password);
+			var registerResult = await _userManager.CreateAsync(new UserDAO { Email = request.Email, UserName = request.UserName }, request.Password);
 
 			if (registerResult.Succeeded == false)
 				return BadRequest(new ErrorModel { Errors = registerResult.Errors.Select(e => e.Description) });

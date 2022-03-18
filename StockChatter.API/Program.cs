@@ -80,10 +80,13 @@ builder.Host.ConfigureServices((ctx, services) =>
 		opt.User.RequireUniqueEmail = true;
 
 #if DEBUG
+		// Makes it easier to create disposable credentials.
+		opt.Password.RequiredLength = 3;
 		opt.Password.RequiredUniqueChars = 3;
 		opt.Password.RequireDigit = false;
 		opt.Password.RequireUppercase = false;
 		opt.Password.RequireNonAlphanumeric = false;
+		opt.Password.RequireLowercase = false;
 #else
 		opt.Password.RequiredLength = 8;
 		opt.Password.RequiredUniqueChars = 3;

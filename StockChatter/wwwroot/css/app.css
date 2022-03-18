@@ -34,6 +34,13 @@ a, .btn-link {
     color: red;
 }
 
+.input-form {
+    width: 50%;
+    margin: 0 auto;
+    padding: 2rem;
+    margin-bottom: 1rem
+}
+
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;

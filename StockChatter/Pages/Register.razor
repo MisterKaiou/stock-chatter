@@ -1,41 +1,82 @@
-﻿@using StockChatter.Shared.Models.Auth
+﻿@using Functional.Result
+@using StockChatter.Shared.Models.Auth
 
 @page "/register"
-
 @attribute [AllowAnonymous]
+@inject IAuthService AuthService
+@inject NavigationManager NavManager
 
-<PageTitle>StockChatter - Login</PageTitle>
+<PageTitle>StockChatter - Registration</PageTitle>
 
-<EditForm Model="@_registerModel" OnValidSubmit="@SubmitLoginRequest" class="col-md-12">
-
-    <div style="width: 50%; margin: 0 auto; padding: 2rem">
-
+<EditForm Model="@_registerModel" OnValidSubmit="@SubmitRegistrationRequest" class="input-form col-md-12 mt-5">
+    <DataAnnotationsValidator />
+    <div>
         <h2 class="mb-3">Register</h2>
 
         <div class="mb-3">
             <label for="userName" class="form-label">UserName</label>
-            <InputText id="userName" type="text" class="form-control" @bind-Value="_registerModel.UserName" placeholder="Your user name" />
+            <div>
+                <InputText id="userName" type="text" class="form-control" @bind-Value="_registerModel.UserName" placeholder="Your username" />
+                <ValidationMessage For="@(() => _registerModel.UserName)" />
+            </div>
         </div>
 
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
-            <InputText id="email" type="email" class="form-control" @bind-Value="_registerModel.Email" placeholder="your@email.com" />
+            <div>
+                <InputText id="email" type="email" class="form-control" @bind-Value="_registerModel.Email" placeholder="your@email.com" />
+                <ValidationMessage For="@(() => _registerModel.Email)" />
+            </div>
         </div>
 
         <div class="mb-3">
             <label for="password" class="form-label">Password</label>
-            <InputText id="password" class="form-control" @bind-Value="_registerModel.Password" placeholder="Your password" />
+            <div>
+                <InputText id="password" type="password" class="form-control" @bind-Value="_registerModel.Password" placeholder="Your password" />
+                <ValidationMessage For="@(() => _registerModel.Password)" />
+            </div>
         </div>
 
+        @if (_requestErrors != null)
+        {
+            <div class="card border-danger mb-3" style="background-color:#F5C6CB;">
+                <div class="card-header">Error</div>
+                <div class="card-body">
+                    @foreach (var error in _requestErrors)
+                    {
+                        <p class="card-text">@error</p>
+                    }
+                </div>
+            </div>
+        }
+
         <button class="btn btn-primary" type="submit">Submit</button>
+        <button class="btn btn-outline-secondary float-end" @onclick="MoveToLoginPage">Already member? Login</button>
     </div>
 </EditForm>
 
 @code {
     private RegistrationRequest _registerModel = new();
+    private Errors? _requestErrors = null;
 
-    private void SubmitLoginRequest()
+    private async Task SubmitRegistrationRequest()
     {
+        if (_requestErrors != null)
+        {
+            _requestErrors = null;
+            StateHasChanged();
+        }
 
+        await AuthService.RegisterUserAsync(_registerModel)
+            .Match(
+                _ => NavManager.NavigateTo("login"),
+                error =>
+                {
+                    _requestErrors = error;
+                    StateHasChanged();
+                }
+            );
     }
+
+    private void MoveToLoginPage() => NavManager.NavigateTo("login");
 }

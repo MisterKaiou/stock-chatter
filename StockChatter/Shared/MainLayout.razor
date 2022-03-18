@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject IJwtStateProviderService AuthStateProvider
+@inject NavigationManager NavManager
 
 <AuthorizeView>
     <Authorized>
@@ -9,7 +11,7 @@
 
             <main>
                 <div class="top-row px-4">
-                    <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+                    <button @onclick="@LogoutUser" class="btn btn-outline-primary">Log out</button>
                 </div>
 
                 <article class="content px-4">
@@ -26,3 +28,11 @@
         </main>
     </NotAuthorized>
 </AuthorizeView>
+
+@code {
+    private void LogoutUser()
+    {
+        AuthStateProvider.NotifyUserLogout();
+        NavManager.NavigateTo(Routes.LOGIN, true);
+    }
+}

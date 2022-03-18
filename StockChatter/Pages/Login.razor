@@ -1,44 +1,81 @@
-﻿@using StockChatter.Shared.Models.Auth
+﻿@using Functional.Result
+@using StockChatter.Shared.Models.Auth
 
 @page "/login"
-
-@inject NavigationManager _navManager
-@inject HttpClient _client
 @attribute [AllowAnonymous]
+@inject NavigationManager NavManager
+@inject IAuthService AuthService
+@inject IJwtStateProviderService AuthStateProvider
 
 <PageTitle>StockChatter - Login</PageTitle>
 
-<h2>Login</h2>
+<EditForm Model="@_loginModel" OnValidSubmit="@SubmitLoginRequest" class="input-form col-md-12">
+    <DataAnnotationsValidator />
+    <div>
+        <h2 class="mb-3">Login</h2>
 
-<EditForm Model="@_loginModel" OnValidSubmit="@SubmitLoginRequest">
-    <label style="padding:15px 0px 0px 0px">
-        Username: 
-        <InputText id="username" @bind-Value="_loginModel.Email" placeholder="Your username"/>
-    </label>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <div>
+                <InputText id="email" type="email" class="form-control" @bind-Value="_loginModel.Email" placeholder="your@email.com" />
+                <ValidationMessage For="@(() => _loginModel.Email)" />
+            </div>
+        </div>
 
-    <br/>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <div>
+                <InputText id="password" type="password" class="form-control" @bind-Value="_loginModel.Password" placeholder="Your password" />
+                <ValidationMessage For="@(() => _loginModel.Password)" />
+            </div>
+        </div>
 
-    <label style="padding:15px 0px 20px 0px">
-        Password:
-        <InputText id="password" @bind-Value="_loginModel.Password" placeholder="Your password"/>
-    </label>
+        @if (_requestErrors != null)
+        {
+            <div class="card border-danger mb-3" style="background-color:#F5C6CB;">
+                <div class="card-header">Error</div>
+                <div class="card-body">
+                    @foreach (var error in _requestErrors)
+                    {
+                        <p class="card-text">@error</p>
+                    }
+                </div>
+            </div>
+        }
 
-    <br/>
-
-    <button @onclick="@MoveToRegistrationPage">Register</button>
-    <button type="submit">Submit</button>
+        <button class="btn btn-primary" type="submit">Submit</button>
+        <button class="btn btn-outline-secondary float-end" @onclick="@MoveToRegistrationPage">Create Account</button>
+    </div>
 </EditForm>
 
 @code {
     private LoginRequest _loginModel = new();
+    private Errors? _requestErrors = null;
 
-    private void SubmitLoginRequest()
+    private async Task SubmitLoginRequest()
     {
+        if (_requestErrors != null)
+        {
+            _requestErrors = null;
+            StateHasChanged();
+        }
 
+        await AuthService.LoginUserAsync(_loginModel)
+            .Match(
+                async ok =>
+                {
+                    await AuthStateProvider.NotifyUserAuthentication(ok);
+                    NavManager.NavigateTo(Routes.CHAT_ROOM, true);
+                },
+                err =>
+                {
+                    _requestErrors = err;
+                    StateHasChanged();
+                }
+            );
+
+        StateHasChanged();
     }
 
-    private void MoveToRegistrationPage()
-    {
-        _navManager.NavigateTo("register");
-    }
+    private void MoveToRegistrationPage() => NavManager.NavigateTo(Routes.REGISTRATION);
 }

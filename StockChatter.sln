@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Functional.Result", "Functional.Result\Functional.Result.csproj", "{3B508D1C-74DC-407A-B95F-5C7E118211FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockChatter.Shared", "StockChatter.Shared\StockChatter.Shared.csproj", "{6458ED18-F97F-4F06-BD06-73C159E69198}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StockChatter.Shared", "StockChatter.Shared\StockChatter.Shared.csproj", "{6458ED18-F97F-4F06-BD06-73C159E69198}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
