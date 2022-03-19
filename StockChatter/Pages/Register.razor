@@ -1,14 +1,14 @@
 ﻿@using Functional.Result
 @using StockChatter.Shared.Models.Auth
 
-@page "/register"
+@page "/registration"
 @attribute [AllowAnonymous]
 @inject IAuthService AuthService
 @inject NavigationManager NavManager
 
 <PageTitle>StockChatter - Registration</PageTitle>
 
-<EditForm Model="@_registerModel" OnValidSubmit="@SubmitRegistrationRequest" class="input-form col-md-12 mt-5">
+<EditForm Model="@_registerModel" OnValidSubmit="@SubmitRegistrationRequest" class="container col-md-12 mt-5">
     <DataAnnotationsValidator />
     <div>
         <h2 class="mb-3">Register</h2>

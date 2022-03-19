@@ -1,14 +1,20 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using StockChatter.API.Infrastructure.Database;
-using StockChatter.API.Infrastructure.Database.Models;
-using StockChatter.API.Infrastructure.Services;
-using Serilog;
-using System.Text;
-using StockChatter.API;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using StockChatter.API.Hubs;
+using StockChatter.API.Infrastructure.Database.Models;
+using StockChatter.API.Infrastructure.Database;
+using StockChatter.API.Infrastructure.Providers;
+using StockChatter.API.Infrastructure.Services;
+using StockChatter.API;
+using System.Net.Mime;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +24,14 @@ builder.Host.ConfigureServices((ctx, services) =>
 {
 	services.AddControllers();
 	services.AddEndpointsApiExplorer();
+	services.AddCors();
+	
+	services.AddResponseCompression(opt =>
+	{
+		opt.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+			new[] { MediaTypeNames.Application.Octet }
+		);
+	});
 
 	#region Swagger Setup
 
@@ -57,6 +71,8 @@ builder.Host.ConfigureServices((ctx, services) =>
 	#endregion
 
 	#region Application Services Configuration
+
+	builder.Services.AddSingleton<IUserIdProvider, EmailBasedUserIdProvider>();
 
 	#endregion
 
@@ -113,7 +129,8 @@ builder.Host.ConfigureServices((ctx, services) =>
 	.AddJwtBearer(opt =>
 	{
 		opt.RequireHttpsMetadata = false;
-		opt.SaveToken = false;
+		opt.SaveToken = true;
+
 		opt.TokenValidationParameters = new()
 		{
 			ValidateIssuer = true,
@@ -129,18 +146,32 @@ builder.Host.ConfigureServices((ctx, services) =>
 			ValidateLifetime = true,
 			ClockSkew = TimeSpan.Zero
 		};
+
+		// See: https://docs.microsoft.com/en-us/aspnet/core/signalr/authn-and-authz?view=aspnetcore-6.0#built-in-jwt-authentication
+		opt.Events = new JwtBearerEvents
+		{
+			OnMessageReceived = context =>
+			{
+				var token = context.Request.Query["access_token"];
+				var path = context.HttpContext.Request.Path;
+
+				if(!string.IsNullOrEmpty(token) && path.StartsWithSegments("/chatRoom"))
+				{
+					context.Token = token;
+					context.Request.Headers.Authorization = $"Bearer {token}";
+				}
+
+				return Task.CompletedTask;
+			}
+		};
 	});
 
 	#endregion
+
+	services.AddSignalR();
 });
 
 var app = builder.Build();
-
-app.UseCors(opt => opt
-		.AllowAnyOrigin()
-		.AllowAnyHeader()
-		.AllowAnyMethod()
-);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -153,10 +184,21 @@ using (var scope = app.Services.CreateScope())
 	await scope.ServiceProvider.GetRequiredService<StockChatterContext>().Database.EnsureCreatedAsync();
 
 app.UseHttpsRedirection();
+app.UseRouting();
+
+app.UseCors(opt => opt
+		.WithOrigins("http://localhost:5000", "https://localhost:5001")
+		.AllowAnyHeader()
+		.AllowAnyMethod()
+		.AllowCredentials()
+		.SetIsOriginAllowed(host => true)
+);
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<ChatRoomHub>("/chatRoom");
 app.MapControllers();
+
 app.UseSerilogRequestLogging();
 
 app.Run();

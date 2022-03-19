@@ -9,15 +9,18 @@
                 <NavMenu />
             </div>
 
-            <main>
-                <div class="top-row px-4">
+            <div class="w-100">
+                <div class="top-row">
+                    <div class="mx-3">Hello, @_currentUser</div>
                     <button @onclick="@LogoutUser" class="btn btn-outline-primary">Log out</button>
                 </div>
 
-                <article class="content px-4">
-                    @Body
-                </article>
-            </main>
+                <main>
+                    <article class="h-100 px-4">
+                        @Body
+                    </article>
+                </main>
+            </div>
         </div>
     </Authorized>
     <NotAuthorized>
@@ -30,6 +33,19 @@
 </AuthorizeView>
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> _authenticationState { get; set; }
+
+    private string? _currentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await _authenticationState).User;
+
+        if ((user?.Identity?.IsAuthenticated).IsTrue())
+            _currentUser = user.GetNameFromClaimsPrincipal() ?? "User";
+    }
+
     private void LogoutUser()
     {
         AuthStateProvider.NotifyUserLogout();

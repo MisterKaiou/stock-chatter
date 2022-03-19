@@ -9,7 +9,7 @@
 
 <PageTitle>StockChatter - Login</PageTitle>
 
-<EditForm Model="@_loginModel" OnValidSubmit="@SubmitLoginRequest" class="input-form col-md-12">
+<EditForm Model="@_loginModel" OnValidSubmit="@SubmitLoginRequest" class="container col-md-12">
     <DataAnnotationsValidator />
     <div>
         <h2 class="mb-3">Login</h2>
@@ -54,27 +54,34 @@
 
     private async Task SubmitLoginRequest()
     {
-        if (_requestErrors != null)
+        try
         {
-            _requestErrors = null;
+            if (_requestErrors != null)
+            {
+                _requestErrors = null;
+                StateHasChanged();
+            }
+
+            await AuthService.LoginUserAsync(_loginModel)
+                .Match(
+                    async ok =>
+                    {
+                        await AuthStateProvider.NotifyUserAuthentication(ok);
+                        NavManager.NavigateTo(Routes.CHAT_ROOM, true);
+                    },
+                    err =>
+                    {
+                        _requestErrors = err;
+                        StateHasChanged();
+                    }
+                );
+        }
+        catch (Exception ex)
+        {
+            _requestErrors = new Errors();
+            _requestErrors?.Add($"{ex.GetType().Name} - {ex.Message}");
             StateHasChanged();
         }
-
-        await AuthService.LoginUserAsync(_loginModel)
-            .Match(
-                async ok =>
-                {
-                    await AuthStateProvider.NotifyUserAuthentication(ok);
-                    NavManager.NavigateTo(Routes.CHAT_ROOM, true);
-                },
-                err =>
-                {
-                    _requestErrors = err;
-                    StateHasChanged();
-                }
-            );
-
-        StateHasChanged();
     }
 
     private void MoveToRegistrationPage() => NavManager.NavigateTo(Routes.REGISTRATION);

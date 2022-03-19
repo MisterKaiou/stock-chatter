@@ -1,11 +1,105 @@
 ﻿@page "/chatRoom"
 
+@using Microsoft.AspNetCore.SignalR.Client
+@using StockChatter.HubClients
+@using StockChatter.Shared.HubContracts.ChatRoom
+
+@implements IAsyncDisposable
+
+@inject ChatRoomHubClient ChatHub
+
 <PageTitle>Chat Room</PageTitle>
 
-<div id="chat-container">
-    <p>Start Chatting!</p>
+<div class="d-flex flex-column mx-auto w-50 h-100 shadow">
+    <div id="messages" class="d-flex flex-column mb-3 px-3 h-100">
+        @if (_messages.Any())
+        {
+            @foreach (var message in _messages)
+            {
+                <div class="w-100">
+                    <div 
+                        class="card mb-3 @(message.Sender == _userName ? "float-end" : "float-start")"
+                        style="width: fit-content; height: fit-content; background-color: #E1F5FE">
+                        <div class="card-header"><strong>@message.Sender</strong></div>
+                        <div class="card-body">
+                            <p class="card-text">@message.Text</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    @*Sender #42A5F5 Receiver #E1F5FE*@
+    <div id="message-input" class="mt-auto text-center">
+        @if (_messages.Any() == false)
+        {
+            <div class="mb-3">
+                Start chatting!
+            </div>
+        }
+
+        <div class="d-flex end-0">
+            <input @bind="MessageInput" class="m-2 form-control" type="text" placeholder="Type your message..." />
+            <button class="my-2 me-2 btn btn-primary" disabled="@(SendEnabled)" type="submit" @onclick="Send">Send</button>
+        </div>
+    </div>
 </div>
 
-<div id="chat-input-container">
+@code {
+    private List<ChatMessage> _messages = new List<ChatMessage>();
+    private string? _messageInput;
+    private string? _userName;
 
-</div>
+    private string MessageInput
+    {
+        get => _messageInput ?? "";
+        set
+        {
+            _messageInput = value;
+            StateHasChanged();
+        }
+    }
+
+    private bool SendEnabled =>
+        !(IsConnected && !string.IsNullOrWhiteSpace(_messageInput) && !string.IsNullOrWhiteSpace(_userName));
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationStateTask { get; set; }
+
+    public bool IsConnected => ChatHub.ConnectionState == HubConnectionState.Connected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (authenticationStateTask is not null)
+            _userName = (await authenticationStateTask).User.GetNameFromClaimsPrincipal();
+
+        ChatHub.OnMessageReceived += (m) =>
+        {
+            _messages.Add(m);
+            StateHasChanged();
+        };
+
+        await ChatHub.StartAsync();
+    }
+
+    private async Task Send()
+    {
+        await ChatHub.SendMessage(new ChatMessage
+            {
+                Sender = _userName,
+                Text = _messageInput
+            });
+
+        _messageInput = "";
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (ChatHub is not null)
+        {
+            await ChatHub.DisposeAsync();
+        }
+    }
+}

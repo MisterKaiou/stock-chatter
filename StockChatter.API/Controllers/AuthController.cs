@@ -61,6 +61,7 @@ namespace StockChatter.API.Controllers
 		{
 			var claims = new List<Claim>
 			{
+				new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
 				new Claim(JwtRegisteredClaimNames.Name, user.UserName),
 				new Claim(JwtRegisteredClaimNames.Email, user.Email),
 				new Claim(JwtRegisteredClaimNames.Iss, tokenSettings.Issuer),

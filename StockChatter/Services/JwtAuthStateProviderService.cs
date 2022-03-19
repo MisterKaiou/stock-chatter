@@ -27,8 +27,6 @@ namespace StockChatter.Services
 			if (string.IsNullOrWhiteSpace(token))
 				return _anonymous;
 
-			var claims = JwtParser.ParseClaimFromJwt(token);
-
 			return new AuthenticationState(
 				new ClaimsPrincipal(
 				new ClaimsIdentity(

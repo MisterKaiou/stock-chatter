@@ -25,7 +25,7 @@ namespace StockChatter.Services
 		{
 			var response = await _client.SendRequestAsync(c => c.PostAsJsonAsync("auth/login", request));
 			return await response.HttpResponseToResultAsync(
-				c => c.ReadAsStringAsync()
+				c => c.ReadFromJsonAsync<string>()
 			);
 		}
 	}
