@@ -12,5 +12,12 @@ namespace StockChatter.API.Infrastructure.Database
 
         public DbSet<UserDAO> Users { get; set; }
         public DbSet<MessageDAO> Messages { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.ApplyConfigurationsFromAssembly(GetType().Assembly);
+        }
     }
 }

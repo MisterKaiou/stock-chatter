@@ -1,4 +1,5 @@
 ﻿using StockChatter.API.Domain.Entitites.Messages;
+using StockChatter.API.Infrastructure.Database.Models;
 using StockChatter.API.Infrastructure.Repositories.Interfaces;
 using StockChatter.API.Infrastructure.Services.Interfaces;
 
@@ -6,16 +7,24 @@ namespace StockChatter.API.Infrastructure.Services
 {
     public class MessagesService : IMessagesService
     {
-        private readonly IMessagesRepository _repository;
+        private readonly IUoW _uow;
 
-        public MessagesService(IMessagesRepository repository)
+        public MessagesService(IUoW uow)
         {
-            _repository = repository;
+            _uow = uow;
         }
 
-        public Task PostMessage(Message message, CancellationToken cancellationToken = default)
+        public async Task PostMessageAsync(Message message, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            await _uow.MessagesRepository.Add(new MessageDAO
+            {
+                Id = Guid.NewGuid(),
+                SenderId = message.SenderIdentifier,
+                Content = message.Content,
+                SentAt = message.SentAt
+            }, cancellationToken);
+
+            await _uow.SaveChangesAsync();
         }
     }
 }

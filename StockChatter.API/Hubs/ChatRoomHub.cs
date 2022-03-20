@@ -16,13 +16,13 @@ namespace StockChatter.API.Hubs
             _messagesService = messagesService;
         }
 
-        public Task SendMessage(PostMessageModel postMessageModel)
+        public async Task SendMessage(PostMessageModel postMessageModel)
         {
             Console.WriteLine(Context.UserIdentifier);
 
             var message = new Message(Guid.Parse(Context.UserIdentifier), postMessageModel.Sender, postMessageModel.Text, DateTime.Now);
 
-            // TODO: Insert message to the database.
+            await _messagesService.PostMessageAsync(message);
 
             var postedMessage = new PostedMessageModel
             {
@@ -31,7 +31,7 @@ namespace StockChatter.API.Hubs
                 Sender = message.SenderName
             };
 
-            return Clients.All.SendAsync(ChatRoomHubMethods.MessageExchange.Receive, postedMessage);
+            await Clients.All.SendAsync(ChatRoomHubMethods.MessageExchange.Receive, postedMessage);
         }
     }
 }
