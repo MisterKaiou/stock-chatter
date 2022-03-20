@@ -11,5 +11,6 @@ namespace StockChatter.API.Infrastructure.Database
             : base(options) { }
 
         public DbSet<UserDAO> Users { get; set; }
+        public DbSet<MessageDAO> Messages { get; set; }
     }
 }

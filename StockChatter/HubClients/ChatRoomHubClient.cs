@@ -5,7 +5,7 @@ using StockChatter.Shared.HubContracts.ChatRoom;
 
 namespace StockChatter.HubClients
 {
-	public delegate void MessageReceived(ChatMessage chatMessage);
+	public delegate void MessageReceived(PostedMessageModel chatMessage);
 
 	public class ChatRoomHubClient : IAsyncDisposable
 	{
@@ -23,7 +23,7 @@ namespace StockChatter.HubClients
 			_baseUri = configuration.GetValue<string>("ApiBaseUri");
 		}
 
-		public async Task SendMessage(ChatMessage message)
+		public async Task SendMessage(PostMessageModel message)
 		{
 			await _hub.SendAsync(ChatRoomHubMethods.MessageExchange.Send, message);
 		}
@@ -51,7 +51,7 @@ namespace StockChatter.HubClients
 
 		private void SetupEvents()
 		{
-			_hub.On<ChatMessage>(ChatRoomHubMethods.MessageExchange.Receive,
+			_hub.On<PostedMessageModel>(ChatRoomHubMethods.MessageExchange.Receive,
 				message => OnMessageReceived?.Invoke(message)
 			);
 		}

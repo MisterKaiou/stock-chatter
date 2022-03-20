@@ -1,12 +1,12 @@
 ﻿using Functional.Result;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using StockChatter.API.Domain.Entitites;
+using StockChatter.API.Domain.Entitites.Users;
 using StockChatter.API.Infrastructure.Database.Models;
 
 namespace StockChatter.API.Infrastructure.Services
 {
-	public class UserService : UserManager<UserDAO>
+    public class UserService : UserManager<UserDAO>
 	{
 		public UserService(IUserStore<UserDAO> store,
 					 IOptions<IdentityOptions> optionsAccessor,

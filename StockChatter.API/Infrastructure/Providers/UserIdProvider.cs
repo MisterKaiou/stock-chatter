@@ -3,7 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace StockChatter.API.Infrastructure.Providers
 {
-	public class EmailBasedUserIdProvider : IUserIdProvider
+	public class UserIdProvider : IUserIdProvider
 	{
 		public string? GetUserId(HubConnectionContext connection)
 		{

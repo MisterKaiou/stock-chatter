@@ -1,9 +1,9 @@
-﻿namespace StockChatter.API.Domain.Entitites
+﻿namespace StockChatter.API.Domain.Entitites.Users
 {
     public record User
     {
-		public Guid Id { get; set; }
-		public string UserName { get; }
+        public Guid Id { get; set; }
+        public string UserName { get; }
         public string Password { get; }
         public string Email { get; }
 

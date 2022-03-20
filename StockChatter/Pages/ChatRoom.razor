@@ -11,19 +11,32 @@
 <PageTitle>Chat Room</PageTitle>
 
 <div class="d-flex flex-column mx-auto w-50 h-100 shadow">
-    <div id="messages" class="d-flex flex-column mb-3 px-3 h-100">
+    <div id="messages" class="d-flex flex-column mb-3 px-3 pt-3 h-100">
         @if (_messages.Any())
         {
-            @foreach (var message in _messages)
+            @for (var i = 0; i < _messages.Count && i < 50; i++)
             {
+                var message = _messages[(_messages.Count - 1) - i];
+
                 <div class="w-100">
-                    <div 
-                        class="card mb-3 @(message.Sender == _userName ? "float-end" : "float-start")"
-                        style="width: fit-content; height: fit-content; background-color: #E1F5FE">
+                    <div class="card mb-3 @(message.Sender == _userName ? "float-end" : "float-start")"
+                 style="width: fit-content; height: fit-content; background-color: #E1F5FE">
                         <div class="card-header"><strong>@message.Sender</strong></div>
                         <div class="card-body">
-                            <p class="card-text">@message.Text</p>
+                            <p class="card-text">@message.Content</p>
                         </div>
+                        <footer class="px-3 pb-1" style="text-align: end; font-size: 13px">
+                            <i>
+                                @if(@message.PostedAt.Date == DateTime.Today.Date)
+                                {
+                                    @message.PostedAt.ToString("t")
+                                }
+                                else
+                                {
+                                    @message.PostedAt.ToString("g")
+                                }
+                            </i>
+                        </footer>
                     </div>
                 </div>
             }
@@ -31,7 +44,7 @@
     </div>
 
     @*Sender #42A5F5 Receiver #E1F5FE*@
-    <div id="message-input" class="mt-auto text-center">
+    <div id="message-input" class="text-center pb-2">
         @if (_messages.Any() == false)
         {
             <div class="mb-3">
@@ -40,14 +53,14 @@
         }
 
         <div class="d-flex end-0">
-            <input @bind="MessageInput" class="m-2 form-control" type="text" placeholder="Type your message..." />
+            <input @onkeydown="@(async k => { if(k.Code == "Enter") await Send(); })" @bind="MessageInput" @oninput="OnType" class="m-2 form-control" type="text" placeholder="Type your message..." />
             <button class="my-2 me-2 btn btn-primary" disabled="@(SendEnabled)" type="submit" @onclick="Send">Send</button>
         </div>
     </div>
 </div>
 
 @code {
-    private List<ChatMessage> _messages = new List<ChatMessage>();
+    private List<PostedMessageModel> _messages = new List<PostedMessageModel>();
     private string? _messageInput;
     private string? _userName;
 
@@ -83,18 +96,6 @@
         await ChatHub.StartAsync();
     }
 
-    private async Task Send()
-    {
-        await ChatHub.SendMessage(new ChatMessage
-            {
-                Sender = _userName,
-                Text = _messageInput
-            });
-
-        _messageInput = "";
-        StateHasChanged();
-    }
-
     public async ValueTask DisposeAsync()
     {
         if (ChatHub is not null)
@@ -102,4 +103,20 @@
             await ChatHub.DisposeAsync();
         }
     }
+
+    private async Task Send()
+    {
+        if (MessageInput == "") return;
+
+        await ChatHub.SendMessage(new PostMessageModel
+            {
+                Sender = _userName,
+                Text = _messageInput,
+            });
+
+        _messageInput = "";
+        StateHasChanged();
+    }
+
+    private void OnType(ChangeEventArgs c) => MessageInput = c.Value?.ToString() ?? string.Empty;
 }

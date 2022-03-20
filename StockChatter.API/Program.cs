@@ -15,6 +15,9 @@ using StockChatter.API;
 using System.Net.Mime;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using StockChatter.API.Infrastructure.Services.Interfaces;
+using StockChatter.API.Infrastructure.Repositories;
+using StockChatter.API.Infrastructure.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,7 +75,10 @@ builder.Host.ConfigureServices((ctx, services) =>
 
 	#region Application Services Configuration
 
-	builder.Services.AddSingleton<IUserIdProvider, EmailBasedUserIdProvider>();
+	builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
+	builder.Services.AddScoped<IMessagesService, MessagesService>();
+
+	builder.Services.AddScoped<IMessagesRepository, MessagesRepository>();
 
 	#endregion
 

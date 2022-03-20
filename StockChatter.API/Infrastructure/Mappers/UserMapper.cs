@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using StockChatter.API.Domain.Entitites;
+using StockChatter.API.Domain.Entitites.Users;
 using StockChatter.API.Infrastructure.Database.Models;
 
 namespace StockChatter.API.Infrastructure.Mappers
