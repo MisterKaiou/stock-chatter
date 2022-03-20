@@ -21,8 +21,9 @@
                 var message = _messages[(_messages.Count - 1) - i];
 
                 <div class="w-100">
-                    <div id="@Guid.NewGuid()" class="card mb-3 @(message.Sender == _userName ? "float-end" : "float-start")"
-                 style="width: fit-content; max-width: 75%; height: fit-content; background-color: #E1F5FE">
+                    <div class="card mb-3 @(IsMessageSender(message) ? "float-end" : "float-start")"
+                         style="width: fit-content; max-width: 75%; height: fit-content; 
+                                background-color: @(IsMessageSender(message) ? "#C8E6C9" : "#E1F5FE")">
                         <div class="card-header"><strong>@message.Sender</strong></div>
                         <div class="card-body">
                             <p class="card-text">@message.Content</p>
@@ -119,6 +120,8 @@
         _messages.Add(message);
         StateHasChanged();
     }
+
+    private bool IsMessageSender(PostedMessageModel postedMessage) => postedMessage.Sender == _userName;
 
     private void OnType(ChangeEventArgs c) => MessageInput = c.Value?.ToString() ?? string.Empty;
 }
