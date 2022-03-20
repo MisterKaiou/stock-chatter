@@ -91,8 +91,11 @@
             _userName = (await authenticationStateTask).User.GetNameFromClaimsPrincipal();
 
         ChatHub.OnMessageReceived += AddMessage;
+        ChatHub.OnMessagesSynchronized += SyncMessages;
 
         await ChatHub.StartAsync();
+
+        await ChatHub.SyncMessagesStartingAtAsync(DateTime.MinValue);
     }
 
     public async ValueTask DisposeAsync()
@@ -105,7 +108,7 @@
     {
         if (MessageInput == "") return;
 
-        await ChatHub.SendMessage(new PostMessageModel
+        await ChatHub.SendMessageAsync(new PostMessageModel
             {
                 Sender = _userName,
                 Text = _messageInput,
@@ -118,6 +121,12 @@
     private void AddMessage(PostedMessageModel message)
     {
         _messages.Add(message);
+        StateHasChanged();
+    }
+
+    private void SyncMessages(IEnumerable<PostedMessageModel> messages)
+    {
+        _messages.AddRange(messages);
         StateHasChanged();
     }
 

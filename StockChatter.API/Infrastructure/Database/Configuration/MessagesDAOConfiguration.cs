@@ -19,6 +19,9 @@ namespace StockChatter.API.Infrastructure.Database.Configuration
                 .HasForeignKey(m => m.SenderId)
                 .HasPrincipalKey(u => u.Id)
                 .HasConstraintName("FK_User_Messages");
+
+            builder
+                .HasIndex(x => x.SentAt, "IDX_Messages_SentAt");
         }
     }
 }

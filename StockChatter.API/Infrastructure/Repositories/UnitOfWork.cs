@@ -21,6 +21,18 @@ namespace StockChatter.API.Infrastructure.Repositories
 			}
 		}
 
-        public Task SaveChangesAsync() => _context.SaveChangesAsync();
+		private IUsersRepository? _usersRepository;
+		public IUsersRepository UsersRepository
+		{
+			get
+			{
+				if (_usersRepository == null)
+					_usersRepository = new UsersRepository(_context);
+
+				return _usersRepository;
+			}
+		}
+
+		public Task SaveChangesAsync() => _context.SaveChangesAsync();
     }
 }

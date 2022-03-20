@@ -6,6 +6,8 @@
 		{
 			public const string Receive = "ReceiveMessage";
 			public const string Send = "SendMessage";
+			public const string Sync = "SyncMessages";
+			public const string SyncClient = "SyncClient";
 		}
 	}
 }

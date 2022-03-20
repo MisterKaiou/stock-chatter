@@ -1,4 +1,5 @@
-﻿using StockChatter.API.Domain.Entitites.Messages;
+﻿using Microsoft.EntityFrameworkCore;
+using StockChatter.API.Domain.Entitites.Messages;
 using StockChatter.API.Infrastructure.Database.Models;
 using StockChatter.API.Infrastructure.Repositories.Interfaces;
 using StockChatter.API.Infrastructure.Services.Interfaces;
@@ -26,5 +27,20 @@ namespace StockChatter.API.Infrastructure.Services
 
             await _uow.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Message>> FetchMessagesStartingFrom(DateTime date)
+		{
+            var messages = await _uow.MessagesRepository.Messages
+                .Join(
+                    _uow.UsersRepository.Users,
+                    m => m.SenderId,
+                    u => u.Id,
+                    (m, u) => new { m.Id, m.SenderId, m.SentAt, m.Content, u.UserName })
+                .Where(m => m.SentAt > date)
+                .OrderBy(m => m.SentAt)
+                .ToListAsync();
+
+            return messages.Select(m => new Message(m.SenderId, m.UserName, m.Content, m.SentAt));
+		}
     }
 }

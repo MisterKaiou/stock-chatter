@@ -4,15 +4,17 @@ using StockChatter.Shared.HubContracts.ChatRoom;
 
 namespace StockChatter.HubClients
 {
-	public delegate void MessageReceived(PostedMessageModel chatMessage);
-
 	public class ChatRoomHubClient : IAsyncDisposable
 	{
+		public delegate void MessageReceived(PostedMessageModel chatMessage);
+		public delegate void MessagesSynchronized(IEnumerable<PostedMessageModel> chatMessage);
+
 		private HubConnection? _hub;
 		private readonly ILocalStorageService _localStorage;
 		private readonly string _baseUri;
 
 		public event MessageReceived? OnMessageReceived;
+		public event MessagesSynchronized? OnMessagesSynchronized;
 
 		public HubConnectionState ConnectionState => _hub.State;
 
@@ -22,9 +24,14 @@ namespace StockChatter.HubClients
 			_baseUri = configuration.GetValue<string>("ApiBaseUri");
 		}
 
-		public async Task SendMessage(PostMessageModel message)
+		public async Task SendMessageAsync(PostMessageModel message)
 		{
 			await _hub.SendAsync(ChatRoomHubMethods.MessageExchange.Send, message);
+		}
+
+		public async Task SyncMessagesStartingAtAsync(DateTime date)
+		{
+			await _hub.SendAsync(ChatRoomHubMethods.MessageExchange.Sync, date);
 		}
 
 		public async Task StartAsync()
@@ -48,6 +55,7 @@ namespace StockChatter.HubClients
 
 			await _hub.StopAsync();
 			_hub?.Remove(ChatRoomHubMethods.MessageExchange.Receive);
+			_hub?.Remove(ChatRoomHubMethods.MessageExchange.Sync);
 		}
 
 		public async ValueTask DisposeAsync()
@@ -60,6 +68,10 @@ namespace StockChatter.HubClients
 		{
 			_hub.On<PostedMessageModel>(ChatRoomHubMethods.MessageExchange.Receive,
 				message => OnMessageReceived?.Invoke(message)
+			);
+
+			_hub.On<IEnumerable<PostedMessageModel>>(ChatRoomHubMethods.MessageExchange.SyncClient,
+				messages => OnMessagesSynchronized?.Invoke(messages)
 			);
 		}
 	}

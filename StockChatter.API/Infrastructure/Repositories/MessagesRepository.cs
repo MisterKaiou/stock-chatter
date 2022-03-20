@@ -14,7 +14,9 @@ namespace StockChatter.API.Infrastructure.Repositories
             _messages = dbContext.Messages;
         }
 
-        public Task Add(MessageDAO message, CancellationToken cancellationToken = default)
+        public IQueryable<MessageDAO> Messages => _messages;
+
+		public Task Add(MessageDAO message, CancellationToken cancellationToken = default)
         {
             _messages.Add(message);
             return Task.CompletedTask;

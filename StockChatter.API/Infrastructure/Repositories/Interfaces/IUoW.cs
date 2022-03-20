@@ -4,6 +4,7 @@
     {
         public IMessagesRepository MessagesRepository { get; }
 
+        public IUsersRepository UsersRepository { get; }
         Task SaveChangesAsync();
     }
 }
