@@ -27,6 +27,6 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProviderService>();
 builder.Services.AddScoped<IJwtStateProviderService, JwtAuthStateProviderService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddTransient<ChatRoomHubClient>();
+builder.Services.AddScoped<ChatRoomHubClient>();
 
 await builder.Build().RunAsync();

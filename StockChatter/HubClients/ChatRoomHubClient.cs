@@ -1,5 +1,4 @@
 ﻿using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
 using StockChatter.Shared.HubContracts.ChatRoom;
 
@@ -41,6 +40,14 @@ namespace StockChatter.HubClients
 
 			SetupEvents();
 			await _hub.StartAsync();
+		}
+
+		public async Task StopAsync()
+		{
+			if (_hub == null) return;
+
+			await _hub.StopAsync();
+			_hub?.Remove(ChatRoomHubMethods.MessageExchange.Receive);
 		}
 
 		public async ValueTask DisposeAsync()
