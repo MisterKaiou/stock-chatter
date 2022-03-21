@@ -109,11 +109,7 @@
     {
         if (MessageInput == "") return;
 
-        await ChatHub.SendMessageAsync(new PostMessageModel
-            {
-                Sender = _userName,
-                Content = _messageInput,
-            });
+        await ChatHub.SendMessageAsync(new PostMessageModel(_userName, _messageInput));
 
         _messageInput = "";
         StateHasChanged();

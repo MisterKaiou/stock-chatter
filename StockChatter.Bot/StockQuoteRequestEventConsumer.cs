@@ -5,6 +5,7 @@ using StockChatter.Shared.HubContracts.ChatRoom.Messages;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+public record StockDetails(string Symbol, DateTime Date, string Time, decimal Open, decimal High, decimal Low, decimal Close, uint Volume);
 public class StockQuoteRequestEventConsumer : IConsumer<StockQuoteRequestMessage>, IDisposable
 {
 	private readonly CancellationTokenSource _tokenSource = new();
@@ -34,11 +35,9 @@ public class StockQuoteRequestEventConsumer : IConsumer<StockQuoteRequestMessage
 
 			var stockDetails = csvReader.GetRecords<StockDetails>().First();
 
-			await context.Publish(new StockDetailsMessage
-			{
-				Symbol = stockDetails.Symbol,
-				Price = stockDetails.Close
-			});
+			await context.Publish(
+				   new StockDetailsMessage(stockDetails.Symbol, stockDetails.Close)
+			);
 
 			_logger.LogInformation("Successfully processed quote request for stock: [{@requestedStock}]", requestedStock);
 		}
@@ -50,10 +49,9 @@ public class StockQuoteRequestEventConsumer : IConsumer<StockQuoteRequestMessage
 				  requestedStock
 			);
 
-			await context.Publish(new StockFetchFailedMessage
-			{
-				RefererId = context.Message.RequesterId
-			});
+			await context.Publish(
+				   new StockFetchFailedMessage(context.Message.RequesterId)
+			);
 		}
 		catch (Exception ex)
 		{
@@ -66,6 +64,4 @@ public class StockQuoteRequestEventConsumer : IConsumer<StockQuoteRequestMessage
 	}
 
 	public void Dispose() => _httpClient.Dispose();
-
-	private record StockDetails(string Symbol, DateTime Date, string Time, decimal Open, decimal High, decimal Low, decimal Close, uint Volume);
 }

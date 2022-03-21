@@ -31,11 +31,9 @@ namespace StockChatter.API.Hubs
 			var commandMatch = _stockCommandRgx.Match(postMessageModel.Content);
 			if (commandMatch.Success)
 			{
-				await _publisher.Publish(new StockQuoteRequestMessage
-				{
-					Stock = commandMatch.Groups["stock"].Value,
-					RequesterId = userId
-				});
+				await _publisher.Publish(
+					  new StockQuoteRequestMessage(userId, commandMatch.Groups["stock"].Value)
+				);
 				return;
 			}
 
@@ -43,14 +41,14 @@ namespace StockChatter.API.Hubs
 
 			await _messagesService.PostMessageAsync(message);
 
-			var postedMessage = new PostedMessageModel
-			{
-				Content = message.Content,
-				PostedAt = message.SentAt,
-				Sender = message.SenderName
-			};
+			var postedMessage = new PostedMessageModel(
+				message.SenderName,
+				message.Content,
+				message.SentAt);
 
-			await Clients.All.SendAsync(ChatRoomHubMethods.MessageExchange.Receive, postedMessage);
+			await Clients.All.SendAsync(
+				ChatRoomHubMethods.MessageExchange.Receive,
+				postedMessage);
 		}
 
 		public async Task SyncMessages(DateTime startingFrom)
@@ -59,12 +57,10 @@ namespace StockChatter.API.Hubs
 
 			await Clients.Caller.SendAsync(
 				ChatRoomHubMethods.MessageExchange.SyncClient,
-				messages.Select(m => new PostedMessageModel
-				{
-					Content = m.Content,
-					PostedAt = m.SentAt,
-					Sender = m.SenderName
-				})
+				messages.Select(m => new PostedMessageModel(
+					m.SenderName,
+					m.Content,
+					m.SentAt))
 			);
 		}
 	}

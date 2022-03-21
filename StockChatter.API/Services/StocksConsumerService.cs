@@ -26,12 +26,12 @@ namespace StockChatter.API.Services
 			_logger.LogInformation("Notifying users of quote for stock [{@symbol}]", stock.Symbol);
 
 			await _hubContext.Clients.All.SendAsync(
-				ChatRoomHubMethods.MessageExchange.Receive, new PostedMessageModel
-				{
-					Content = $"{stock.Symbol.ToUpperInvariant()} quote is ${stock.Price} per share",
-					PostedAt = DateTime.Now,
-					Sender = BOT_NAME
-				}
+				ChatRoomHubMethods.MessageExchange.Receive,
+					new PostedMessageModel(
+						BOT_NAME,
+						$"{stock.Symbol.ToUpperInvariant()} quote is ${stock.Price} per share",
+						DateTime.Now
+					)
 			);
 		}
 
@@ -39,12 +39,14 @@ namespace StockChatter.API.Services
 		{
 			await _hubContext.Clients
 				.User(context.Message.RefererId.ToString())
-				.SendAsync(ChatRoomHubMethods.MessageExchange.Receive, new PostedMessageModel
-				{
-					Sender = BOT_NAME,
-					Content = "Sorry, I didn't undestand the ticker requested",
-					PostedAt = DateTime.Now
-				});
+				.SendAsync(
+					ChatRoomHubMethods.MessageExchange.Receive,
+						 new PostedMessageModel(
+							BOT_NAME,
+							"Sorry, I didn't undestand the ticker requested",
+							DateTime.Now
+						)
+				);
 		}
 	}
 }
