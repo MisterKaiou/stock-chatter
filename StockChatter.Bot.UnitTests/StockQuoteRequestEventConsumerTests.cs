@@ -12,6 +12,7 @@ using System;
 using StockChatter.Shared.HubContracts.ChatRoom.Messages;
 using MassTransit;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace StockChatter.Bot.UnitTests
 {
@@ -54,7 +55,7 @@ namespace StockChatter.Bot.UnitTests
 		}
 
 		[Test]
-		public async Task Consume_ShouldProcess_ValidMessage()
+		public async Task Consume_ValidMessage_ShouldProcessQuoteRequest()
 		{
 			// Arrange
 			var stockDetails = _fixture.Create<StockDetails>();
@@ -85,6 +86,89 @@ namespace StockChatter.Bot.UnitTests
 			// Assert
 			await context.Received().Publish(
 				Arg.Is<StockDetailsMessage>(m => m == expectedPublish)
+			);
+		}
+
+		[Test]
+		public async Task Consume_InvalidMessage_ShouldFailAndPublishFailureMessage()
+		{
+			// Arrange
+			var requesterId = Guid.NewGuid();
+			var expectedFailure = new StockFetchFailedMessage(
+				requesterId,
+				StockFetchFailureReason.TickerNotFoundOrDataUnavailable);
+			var stockDetails = _fixture.Create<StockDetails>();
+			var textStream = new MemoryStream();
+			using var streamWriter = new StreamWriter(textStream);
+			using var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture);
+			csvWriter.WriteHeader<StockDetails>();
+			csvWriter.NextRecord();
+
+			// Response returned in case of invalid paramter.
+			"AAPL,N/D,N/D,N/D,N/D,N/D,N/D,N/D".Split(',')
+				.ToList()
+				.ForEach(s => csvWriter.WriteField(s));
+
+			csvWriter.NextRecord();
+			csvWriter.Flush();
+			streamWriter.Flush();
+
+			_mockHttpMessageHandler
+				.When("https://stooq.com/q/l/*")
+				.Respond(
+					"text/csv", streamWriter.BaseStream);
+
+			var context = Substitute.For<ConsumeContext<StockQuoteRequestMessage>>();
+			context.Message.Returns(
+				 new StockQuoteRequestMessage(requesterId, stockDetails.Symbol));
+
+			// Act
+			await _sut.Consume(context);
+
+			// Assert
+			await context.Received().Publish(
+				Arg.Is<StockFetchFailedMessage>(f => f == expectedFailure)
+			);
+		}
+
+		[Test]
+		public async Task Consume_TransienteFailure_ShouldPublishFailureMessage()
+		{
+			// Arrange
+			var requesterId = Guid.NewGuid();
+			var expectedFailure = new StockFetchFailedMessage(
+				requesterId,
+				StockFetchFailureReason.TransientError);
+			var stockDetails = _fixture.Create<StockDetails>();
+			var expectedPublish = new StockDetailsMessage(stockDetails.Symbol, stockDetails.Close);
+			var textStream = new MemoryStream();
+			using var streamWriter = new StreamWriter(textStream);
+			using var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture);
+			csvWriter.WriteHeader<StockDetails>();
+			csvWriter.NextRecord();
+			csvWriter.WriteRecord(stockDetails);
+			csvWriter.NextRecord();
+			csvWriter.Flush();
+			streamWriter.Flush();
+
+			_mockHttpMessageHandler
+				.When("https://stooq.com/q/l/*")
+				.Respond(
+					"text/csv", streamWriter.BaseStream);
+
+			var context = Substitute.For<ConsumeContext<StockQuoteRequestMessage>>();
+			context.Message.Returns(
+				 new StockQuoteRequestMessage(requesterId, stockDetails.Symbol));
+			context
+				.When(c => c.Publish(Arg.Any<StockDetailsMessage>()))
+				.Do(_ => throw new Exception("Transient failure"));
+
+			// Act
+			await _sut.Consume(context);
+
+			// Assert
+			await context.Received().Publish(
+				Arg.Is<StockFetchFailedMessage>(f => f == expectedFailure)
 			);
 		}
 	}

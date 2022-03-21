@@ -50,7 +50,9 @@ public class StockQuoteRequestEventConsumer : IConsumer<StockQuoteRequestMessage
 			);
 
 			await context.Publish(
-				   new StockFetchFailedMessage(context.Message.RequesterId)
+				   new StockFetchFailedMessage(
+					   context.Message.RequesterId,
+					   StockFetchFailureReason.TickerNotFoundOrDataUnavailable)
 			);
 		}
 		catch (Exception ex)
@@ -60,6 +62,11 @@ public class StockQuoteRequestEventConsumer : IConsumer<StockQuoteRequestMessage
 				 "Something went wrong when attempting to fetch stock quote for stock [{@requestedStock}]",
 				 requestedStock
 			);
+
+			await context.Publish(
+				new StockFetchFailedMessage(
+					context.Message.RequesterId,
+					StockFetchFailureReason.TransientError));
 		}
 	}
 

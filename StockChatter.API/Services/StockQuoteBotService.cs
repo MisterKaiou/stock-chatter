@@ -39,7 +39,7 @@ namespace StockChatter.API.Services
 				body: Encoding.UTF8.GetBytes(forStock)
 			);
 
-			_logger.LogDebug("Successfully published a quote request for stock [{@stock}] to queue", forStock);
+			_logger.LogInformation("Successfully published a quote request for stock [{@stock}] to queue", forStock);
 
 			return Task.CompletedTask;
 		}

@@ -43,7 +43,11 @@ namespace StockChatter.API.Services
 					ChatRoomHubMethods.MessageExchange.Receive,
 						 new PostedMessageModel(
 							BOT_NAME,
-							"Sorry, I didn't undestand the ticker requested",
+							context.Message.FailureReason switch
+							{
+								StockFetchFailureReason.TickerNotFoundOrDataUnavailable => "Sorry, I didn't undestand the ticker requested.",
+								StockFetchFailureReason.TransientError => "Sorry, I'm currently unavailable."
+							},
 							DateTime.Now
 						)
 				);
