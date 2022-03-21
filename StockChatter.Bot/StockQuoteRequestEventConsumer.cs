@@ -36,8 +36,7 @@ public class StockQuoteRequestEventConsumer : IConsumer<StockQuoteRequestMessage
 			var stockDetails = csvReader.GetRecords<StockDetails>().First();
 
 			await context.Publish(
-				   new StockDetailsMessage(stockDetails.Symbol, stockDetails.Close)
-			);
+				   new StockDetailsMessage(stockDetails.Symbol, stockDetails.Close));
 
 			_logger.LogInformation("Successfully processed quote request for stock: [{@requestedStock}]", requestedStock);
 		}
@@ -46,14 +45,12 @@ public class StockQuoteRequestEventConsumer : IConsumer<StockQuoteRequestMessage
 			_logger.LogError(
 				csvEx,
 				  "Failed to parse response, stock [{@requestedStock}] unknown or no data available",
-				  requestedStock
-			);
+				  requestedStock);
 
 			await context.Publish(
 				   new StockFetchFailedMessage(
 					   context.Message.RequesterId,
-					   StockFetchFailureReason.TickerNotFoundOrDataUnavailable)
-			);
+					   StockFetchFailureReason.TickerNotFoundOrDataUnavailable));
 		}
 		catch (Exception ex)
 		{

@@ -4,7 +4,7 @@ namespace StockChatter.API.Services.Interfaces
 {
 	public interface IMessagesService
 	{
-		Task<IEnumerable<Message>> FetchMessagesStartingFrom(DateTime date);
+		Task<IEnumerable<Message>> FetchMessagesStartingFromAsync(DateTime date);
 		Task PostMessageAsync(Message message, CancellationToken cancellationToken = default);
 	}
 }

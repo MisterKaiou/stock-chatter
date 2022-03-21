@@ -28,19 +28,20 @@ namespace StockChatter.API.Services
 			await _uow.SaveChangesAsync();
 		}
 
-		public async Task<IEnumerable<Message>> FetchMessagesStartingFrom(DateTime date)
+		public async Task<IEnumerable<Message>> FetchMessagesStartingFromAsync(DateTime date)
 		{
-			var messages = await _uow.MessagesRepository.Messages
+			var messages = _uow.MessagesRepository.Messages
 				.Join(
 					_uow.UsersRepository.Users,
 					m => m.SenderId,
 					u => u.Id,
 					(m, u) => new { m.Id, m.SenderId, m.SentAt, m.Content, u.UserName })
 				.Where(m => m.SentAt > date)
-				.OrderBy(m => m.SentAt)
-				.ToListAsync();
+				.ToList();
 
-			return messages.Select(m => new Message(m.SenderId, m.UserName, m.Content, m.SentAt));
+			return messages
+				.Select(m => new Message(m.SenderId, m.UserName, m.Content, m.SentAt))
+				.OrderBy(m => m.SentAt);
 		}
 	}
 }

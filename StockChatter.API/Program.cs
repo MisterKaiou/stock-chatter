@@ -32,8 +32,7 @@ builder.Host.ConfigureServices((ctx, services) =>
 	services.AddResponseCompression(opt =>
 	{
 		opt.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-			new[] { MediaTypeNames.Application.Octet }
-		);
+			new[] { MediaTypeNames.Application.Octet });
 	});
 
 	services.AddMassTransit(busConfig =>
@@ -45,8 +44,7 @@ builder.Host.ConfigureServices((ctx, services) =>
 			mqCfg.Host(new Uri(ctx.Configuration.GetConnectionString("rabbitMQ")), configure: null);
 			mqCfg.ReceiveEndpoint(
 				   "stockQuotes",
-				   e => e.ConfigureConsumer<StocksConsumerService>(busCtx)
-			);
+				   e => e.ConfigureConsumer<StocksConsumerService>(busCtx));
 		});
 	});
 
@@ -95,7 +93,6 @@ builder.Host.ConfigureServices((ctx, services) =>
 	services.AddSingleton<IUserIdProvider, UserIdProvider>();
 	services.AddScoped<IMessagesService, MessagesService>();
 	services.AddScoped<IUoW, UnitOfWork>();
-	services.AddSingleton<IStockQuoteBotDispatcherService, StockQuoteBotService>();
 
 	#endregion
 
@@ -107,8 +104,7 @@ builder.Host.ConfigureServices((ctx, services) =>
 		.AddDbContext<StockChatterContext>(opt => opt
 			.UseSqlServer(
 				ctx.Configuration.GetConnectionString("mainDatabase"),
-				optBuilder => optBuilder.EnableRetryOnFailure(3, TimeSpan.FromSeconds(3), null))
-		);
+				optBuilder => optBuilder.EnableRetryOnFailure(3, TimeSpan.FromSeconds(3), null)));
 
 	#endregion
 
@@ -209,7 +205,7 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
 	var maxAttempts = 3;
-	var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger<Program>();
+	var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
 	while (maxAttempts > 0)
 	{
@@ -230,8 +226,7 @@ using (var scope = app.Services.CreateScope())
 
 			logger.LogWarning(
 				   "Failed to establish connection to database on server start. Retrying in 10 seconds Atempts left: {@attempt}",
-				   maxAttempts
-			);
+				   maxAttempts);
 
 			await Task.Delay(10000);
 		}

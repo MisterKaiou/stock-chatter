@@ -53,7 +53,7 @@ namespace StockChatter.API.Hubs
 
 		public async Task SyncMessages(DateTime startingFrom)
 		{
-			var messages = await _messagesService.FetchMessagesStartingFrom(startingFrom);
+			var messages = await _messagesService.FetchMessagesStartingFromAsync(startingFrom);
 
 			await Clients.Caller.SendAsync(
 				ChatRoomHubMethods.MessageExchange.SyncClient,
