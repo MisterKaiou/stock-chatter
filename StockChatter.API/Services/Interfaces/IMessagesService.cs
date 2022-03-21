@@ -1,10 +1,10 @@
 ﻿using StockChatter.API.Domain.Entitites.Messages;
 
-namespace StockChatter.API.Infrastructure.Services.Interfaces
+namespace StockChatter.API.Services.Interfaces
 {
-    public interface IMessagesService
-    {
+	public interface IMessagesService
+	{
 		Task<IEnumerable<Message>> FetchMessagesStartingFrom(DateTime date);
 		Task PostMessageAsync(Message message, CancellationToken cancellationToken = default);
-    }
+	}
 }

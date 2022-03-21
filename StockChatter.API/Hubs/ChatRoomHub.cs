@@ -1,24 +1,45 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MassTransit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using StockChatter.API.Domain.Entitites.Messages;
-using StockChatter.API.Infrastructure.Services.Interfaces;
+using StockChatter.API.Services.Interfaces;
 using StockChatter.Shared.HubContracts.ChatRoom;
+using StockChatter.Shared.HubContracts.ChatRoom.Messages;
+using StockChatter.Shared.HubContracts.ChatRoom.Models;
+using System.Text.RegularExpressions;
 
 namespace StockChatter.API.Hubs
 {
 	[Authorize]
 	public class ChatRoomHub : Hub
 	{
+		private readonly static Regex _stockCommandRgx = new Regex(@"^\/stock=(?'stock'\S+)$", RegexOptions.Compiled);
+
+		private readonly IPublishEndpoint _publisher;
 		private readonly IMessagesService _messagesService;
 
-		public ChatRoomHub(IMessagesService messagesService)
+		public ChatRoomHub(IPublishEndpoint botDispatcher, IMessagesService messagesService)
 		{
+			_publisher = botDispatcher;
 			_messagesService = messagesService;
 		}
 
 		public async Task SendMessage(PostMessageModel postMessageModel)
 		{
-			var message = new Message(Guid.Parse(Context.UserIdentifier), postMessageModel.Sender, postMessageModel.Text, DateTime.Now);
+			var userId = Guid.Parse(Context.UserIdentifier);
+
+			var commandMatch = _stockCommandRgx.Match(postMessageModel.Content);
+			if (commandMatch.Success)
+			{
+				await _publisher.Publish(new StockQuoteRequestMessage
+				{
+					Stock = commandMatch.Groups["stock"].Value,
+					RequesterId = userId
+				});
+				return;
+			}
+
+			var message = new Message(userId, postMessageModel.Sender, postMessageModel.Content, DateTime.Now);
 
 			await _messagesService.PostMessageAsync(message);
 

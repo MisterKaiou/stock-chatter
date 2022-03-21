@@ -1,6 +1,7 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.SignalR.Client;
 using StockChatter.Shared.HubContracts.ChatRoom;
+using StockChatter.Shared.HubContracts.ChatRoom.Models;
 
 namespace StockChatter.HubClients
 {

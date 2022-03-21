@@ -2,7 +2,8 @@
 
 @using Microsoft.AspNetCore.SignalR.Client
 @using StockChatter.HubClients
-@using StockChatter.Shared.HubContracts.ChatRoom
+@using StockChatter.Shared.HubContracts.ChatRoom;
+@using StockChatter.Shared.HubContracts.ChatRoom.Models
 
 @inject ChatRoomHubClient ChatHub
 
@@ -111,7 +112,7 @@
         await ChatHub.SendMessageAsync(new PostMessageModel
             {
                 Sender = _userName,
-                Text = _messageInput,
+                Content = _messageInput,
             });
 
         _messageInput = "";

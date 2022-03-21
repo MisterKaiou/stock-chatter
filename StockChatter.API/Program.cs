@@ -10,13 +10,14 @@ using StockChatter.API.Hubs;
 using StockChatter.API.Infrastructure.Database.Models;
 using StockChatter.API.Infrastructure.Database;
 using StockChatter.API.Infrastructure.Providers;
-using StockChatter.API.Infrastructure.Services;
 using StockChatter.API;
 using System.Net.Mime;
 using System.Text;
-using StockChatter.API.Infrastructure.Services.Interfaces;
 using StockChatter.API.Infrastructure.Repositories;
 using StockChatter.API.Infrastructure.Repositories.Interfaces;
+using MassTransit;
+using StockChatter.API.Services;
+using StockChatter.API.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,23 @@ builder.Host.ConfigureServices((ctx, services) =>
 			new[] { MediaTypeNames.Application.Octet }
 		);
 	});
+
+	services.AddMassTransit(busConfig =>
+	{
+		busConfig.AddConsumer<StocksConsumerService>();
+
+		busConfig.UsingRabbitMq((busCtx, mqCfg) =>
+		{
+			mqCfg.Host(new Uri(ctx.Configuration.GetConnectionString("rabbitMQ")), configure: null);
+			mqCfg.ReceiveEndpoint(
+				   "stockQuotes", 
+				   e => e.ConfigureConsumer<StocksConsumerService>(busCtx)
+			);
+		});
+	});
+
+	services.AddOptions<MassTransitHostOptions>()
+		.Configure(opt => opt.WaitUntilStarted = true);
 
 	#region Swagger Setup
 
@@ -74,10 +92,10 @@ builder.Host.ConfigureServices((ctx, services) =>
 
 	#region Application Services Configuration
 
-	builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
-	builder.Services.AddScoped<IMessagesService, MessagesService>();
-
-	builder.Services.AddScoped<IUoW, UnitOfWork>();
+	services.AddSingleton<IUserIdProvider, UserIdProvider>();
+	services.AddScoped<IMessagesService, MessagesService>();
+	services.AddScoped<IUoW, UnitOfWork>();
+	services.AddSingleton<IStockQuoteBotDispatcherService, StockQuoteBotService>();
 
 	#endregion
 

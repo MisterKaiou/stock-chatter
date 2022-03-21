@@ -2,7 +2,7 @@
 using Sodium;
 using StockChatter.API.Infrastructure.Database.Models;
 
-namespace StockChatter.API.Infrastructure.Services
+namespace StockChatter.API.Services
 {
 	public class PasswordHasherService : IPasswordHasher<UserDAO>
 	{

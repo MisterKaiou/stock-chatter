@@ -4,9 +4,9 @@ using Microsoft.Extensions.Options;
 using StockChatter.API.Domain.Entitites.Users;
 using StockChatter.API.Infrastructure.Database.Models;
 
-namespace StockChatter.API.Infrastructure.Services
+namespace StockChatter.API.Services
 {
-    public class UserService : UserManager<UserDAO>
+	public class UserService : UserManager<UserDAO>
 	{
 		public UserService(IUserStore<UserDAO> store,
 					 IOptions<IdentityOptions> optionsAccessor,
@@ -16,7 +16,7 @@ namespace StockChatter.API.Infrastructure.Services
 					 ILookupNormalizer keyNormalizer,
 					 IdentityErrorDescriber errors,
 					 IServiceProvider services,
-					 ILogger<UserManager<UserDAO>> logger) 
+					 ILogger<UserManager<UserDAO>> logger)
 			: base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
 		{
 		}
