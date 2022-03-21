@@ -1,11 +1,10 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace StockChatter.API.Migrations
 {
-    public partial class AddedMessagestable : Migration
+	public partial class AddedMessagestable : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

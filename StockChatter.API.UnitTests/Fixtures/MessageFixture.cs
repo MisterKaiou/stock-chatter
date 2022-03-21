@@ -1,5 +1,6 @@
 ﻿using AutoFixture;
 using StockChatter.API.Infrastructure.Database.Models;
+using StockChatter.Shared.HubContracts.ChatRoom.Models;
 using System;
 
 namespace StockChatter.API.UnitTests.Fixtures
@@ -14,6 +15,9 @@ namespace StockChatter.API.UnitTests.Fixtures
 			Customizations.Add(new RandomDateTimeSequenceGenerator(
 				DateTime.Now.AddDays(-7),
 				DateTime.Now));
+
+			Customize<PostMessageModel>(c =>
+				c.WithAutoProperties());
 
 			Customize<MessageDAO>(c =>
 				c.WithAutoProperties());

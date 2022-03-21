@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using StockChatter.API.Domain.Entitites.Messages;
+﻿using StockChatter.API.Domain.Entitites.Messages;
 using StockChatter.API.Infrastructure.Database.Models;
 using StockChatter.API.Infrastructure.Repositories.Interfaces;
 using StockChatter.API.Services.Interfaces;
