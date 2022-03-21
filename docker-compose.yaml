@@ -1,0 +1,27 @@
+services:
+  queue:
+    image: rabbitmq:3
+    ports:
+      - "5672:5672"
+    container_name: StockChatter.Broker
+  database:
+    image: mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=str0ngPwd!
+    container_name: StockChatter.Database
+  api:
+    depends_on:
+      - database
+    build:
+      context: .
+      dockerfile: ./StockChatter.API/Dockerfile
+    ports:
+      - "5002:80"
+      # - "5003:443" // Not possible now, needs certificates.
+    container_name: StockChatter.API
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+  

@@ -18,6 +18,7 @@ using StockChatter.API.Infrastructure.Repositories.Interfaces;
 using MassTransit;
 using StockChatter.API.Services;
 using StockChatter.API.Services.Interfaces;
+using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +29,6 @@ builder.Host.ConfigureServices((ctx, services) =>
 	services.AddControllers();
 	services.AddEndpointsApiExplorer();
 	services.AddCors();
-	
 	services.AddResponseCompression(opt =>
 	{
 		opt.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
@@ -44,7 +44,7 @@ builder.Host.ConfigureServices((ctx, services) =>
 		{
 			mqCfg.Host(new Uri(ctx.Configuration.GetConnectionString("rabbitMQ")), configure: null);
 			mqCfg.ReceiveEndpoint(
-				   "stockQuotes", 
+				   "stockQuotes",
 				   e => e.ConfigureConsumer<StocksConsumerService>(busCtx)
 			);
 		});
@@ -105,7 +105,9 @@ builder.Host.ConfigureServices((ctx, services) =>
 
 	services
 		.AddDbContext<StockChatterContext>(opt => opt
-			.UseSqlServer(ctx.Configuration.GetConnectionString("mainDatabase"))
+			.UseSqlServer(
+				ctx.Configuration.GetConnectionString("mainDatabase"),
+				optBuilder => optBuilder.EnableRetryOnFailure(3, TimeSpan.FromSeconds(3), null))
 		);
 
 	#endregion
@@ -178,7 +180,7 @@ builder.Host.ConfigureServices((ctx, services) =>
 				var token = context.Request.Query["access_token"];
 				var path = context.HttpContext.Request.Path;
 
-				if(!string.IsNullOrEmpty(token) && path.StartsWithSegments("/chatRoom"))
+				if (!string.IsNullOrEmpty(token) && path.StartsWithSegments("/chatRoom"))
 				{
 					context.Token = token;
 					context.Request.Headers.Authorization = $"Bearer {token}";
@@ -203,8 +205,38 @@ if (app.Environment.IsDevelopment())
 	app.UseSwaggerUI();
 }
 
+// For this demo, this part is useful since the database would take a little longer then the API to boot up.
 using (var scope = app.Services.CreateScope())
-	await scope.ServiceProvider.GetRequiredService<StockChatterContext>().Database.EnsureCreatedAsync();
+{
+	var maxAttempts = 3;
+	var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger<Program>();
+
+	while (maxAttempts > 0)
+	{
+		try
+		{
+			await scope.ServiceProvider.GetRequiredService<StockChatterContext>().Database.MigrateAsync();
+			break;
+		}
+		catch (SqlException ex)
+		{
+			maxAttempts--;
+
+			if (maxAttempts == 0)
+			{
+				logger.LogError(ex, "Maximum number of attempts reached, aborting");
+				throw;
+			}
+
+			logger.LogWarning(
+				   "Failed to establish connection to database on server start. Retrying in 10 seconds Atempts left: {@attempt}",
+				   maxAttempts
+			);
+
+			await Task.Delay(10000);
+		}
+	}
+}
 
 app.UseHttpsRedirection();
 app.UseRouting();
@@ -214,8 +246,8 @@ app.UseCors(opt => opt
 		.AllowAnyHeader()
 		.AllowAnyMethod()
 		.AllowCredentials()
-		.SetIsOriginAllowed(host => true)
 );
+
 app.UseAuthentication();
 app.UseAuthorization();
 
