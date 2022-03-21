@@ -42,7 +42,7 @@ namespace StockChatter.API.Services
 				.SendAsync(ChatRoomHubMethods.MessageExchange.Receive, new PostedMessageModel
 				{
 					Sender = BOT_NAME,
-					Content = "Sorry, I didn't undestand your ticker",
+					Content = "Sorry, I didn't undestand the ticker requested",
 					PostedAt = DateTime.Now
 				});
 		}

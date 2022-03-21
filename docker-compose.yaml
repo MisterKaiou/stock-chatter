@@ -4,6 +4,7 @@ services:
     ports:
       - "5672:5672"
     container_name: StockChatter.Broker
+
   database:
     image: mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04
     ports:
@@ -12,6 +13,7 @@ services:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=str0ngPwd!
     container_name: StockChatter.Database
+
   api:
     depends_on:
       - database
@@ -24,4 +26,14 @@ services:
     container_name: StockChatter.API
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
+
+  bot:
+    depends_on:
+      - queue
+    build:
+      context: .
+      dockerfile: ./StockChatter.Bot/Dockerfile
+    container_name: StockChatter.Bot
+    environment:
+      - QUEUE_HOST_NAME=host.docker.internal
   
