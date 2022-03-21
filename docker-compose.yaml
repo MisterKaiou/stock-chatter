@@ -1,8 +1,9 @@
 services:
   queue:
-    image: rabbitmq:3
+    image: rabbitmq:3-management
     ports:
       - "5672:5672"
+      - "15672:15672"
     container_name: StockChatter.Broker
 
   database:
@@ -20,6 +21,7 @@ services:
     build:
       context: .
       dockerfile: ./StockChatter.API/Dockerfile
+    image: stock-chatter-api:dev
     ports:
       - "5002:80"
       # - "5003:443" // Not possible now, needs certificates.
@@ -33,7 +35,16 @@ services:
     build:
       context: .
       dockerfile: ./StockChatter.Bot/Dockerfile
+    image: stock-chatter-bot:dev
     container_name: StockChatter.Bot
     environment:
       - QUEUE_HOST_NAME=host.docker.internal
   
+  app:
+    build:
+      context: .
+      dockerfile: ./StockChatter/Dockerfile
+    image: stock-chatter-app:dev
+    ports:
+      - "5000:80"
+    container_name: StockChatter.App
