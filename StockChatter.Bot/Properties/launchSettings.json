@@ -7,6 +7,9 @@
     },
     "StockChatter.Bot": {
       "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
     }
   }
 }

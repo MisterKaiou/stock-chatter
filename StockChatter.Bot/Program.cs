@@ -1,4 +1,6 @@
-﻿using MassTransit;
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using MassTransit;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
 
@@ -7,40 +9,45 @@ Log.Logger = new LoggerConfiguration()
 	.WriteTo.Console(
 		outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} <s:{SourceContext}>{NewLine}{Exception}",
 		theme: AnsiConsoleTheme.Code)
-	.CreateLogger();
+	.CreateBootstrapLogger();
 
 var logger = Log.ForContext<Program>();
 
-// See https://aka.ms/new-console-template for more information
-logger.Information("Consuming Stocks Quote requests");
-
-using var tokenSource = new CancellationTokenSource();
-using var httpHandler = new HttpClientHandler();
-var busControl = Bus.Factory.CreateUsingRabbitMq(cfg =>
-{
-	cfg.Host("localhost", "/");
-
-	cfg.ReceiveEndpoint("stocks", e =>
-	{
-		e.Consumer(() =>
-			new StockQuoteRequestEventConsumer(
-				new HttpClient(httpHandler, false),
-				tokenSource.Token,
-				Log.ForContext<StockQuoteRequestEventConsumer>()
-			)
-		);
-	});
-});
-
-await busControl.StartAsync();
-
 try
 {
-	logger.Information("Press any key to exit");
-	await Task.Run(() => Console.ReadLine());
+	await Host.CreateDefaultBuilder(args)
+	.UseSerilog((ctx, cfg) =>
+	{
+		cfg.MinimumLevel.Debug()
+			.WriteTo.Console(
+				outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} <s:{SourceContext}>{NewLine}{Exception}",
+				theme: AnsiConsoleTheme.Code);
+	})
+	.ConfigureServices(services =>
+	{
+		services.AddSingleton<HttpClientHandler>();
+		services.AddTransient(svcs => new HttpClient(svcs.GetRequiredService<HttpClientHandler>(), false));
+
+		services.AddMassTransit(massCfg =>
+		{
+			massCfg.AddConsumer<StockQuoteRequestEventConsumer>();
+
+			massCfg.UsingRabbitMq((busCtx, rabbitCfg) =>
+			{
+				rabbitCfg.Host(Environment.GetEnvironmentVariable("QUEUE_HOST_NAME") ?? "localhost", "/");
+
+				rabbitCfg.ReceiveEndpoint("stocks", e =>
+				{
+					e.ConfigureConsumer<StockQuoteRequestEventConsumer>(busCtx);
+				});
+			});
+		});
+	})
+	.RunConsoleAsync();
 }
-finally
+catch (Exception ex)
 {
-	await busControl.StopAsync();
-	logger.Information("Application shutting down");
+	logger.Error(ex, "Something went wrong when starting the application");
 }
+
+logger.Information("Application shutting down");
