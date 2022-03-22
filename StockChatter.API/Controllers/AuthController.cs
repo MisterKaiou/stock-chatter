@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using StockChatter.API.Infrastructure.Database.Models;
 using StockChatter.Shared.Models.Auth;
 using StockChatter.Shared.Models.Common;
+using System.Net;
 
 namespace StockChatter.API.Controllers
 {
@@ -42,10 +43,10 @@ namespace StockChatter.API.Controllers
 			var user = await _userManager.FindByEmailAsync(request.Email);
 
 			if (user is null)
-				return NotFound(new ErrorModel { Errors = new string[] { "User not found" }});
+				return NotFound(new ErrorModel { Errors = new[] { "User not found" }});
 
 			if (await _userManager.CheckPasswordAsync(user, request.Password) == false)
-				return Unauthorized();
+				return base.StatusCode((int)HttpStatusCode.Unauthorized, new ErrorModel { Errors = new[] { "Wrong password" } });
 
 			return Ok(GenerateToken(user, tokenSettings));
 		}
