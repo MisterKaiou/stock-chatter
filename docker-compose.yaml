@@ -20,7 +20,7 @@ services:
       - database
     build:
       context: .
-      dockerfile: ./StockChatter.API/Dockerfile
+      dockerfile: ./Dockerfile-api
     image: stock-chatter-api:dev
     ports:
       - "5002:80"
@@ -34,17 +34,17 @@ services:
       - queue
     build:
       context: .
-      dockerfile: ./StockChatter.Bot/Dockerfile
+      dockerfile: ./Dockerfile-bot
     image: stock-chatter-bot:dev
     container_name: StockChatter.Bot
     environment:
-      - QUEUE_HOST_NAME=host.docker.internal
+      - QUEUE_HOST_NAME=queue
   
   app:
     build:
       context: .
-      dockerfile: ./StockChatter/Dockerfile
-    image: stock-chatter-app:dev
+      dockerfile: ./Dockerfile-web
+    image: stock-chatter-web:dev
     ports:
       - "5000:80"
     container_name: StockChatter.App
